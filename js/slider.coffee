@@ -1,117 +1,152 @@
-window.app = angular.module('app', ['ngTouch'])
+window.app = angular.module('app', ['ngSlider', 'ngTouch'])
 app.controller 'mainCtrl', ['$scope', ($scope)->
-  $scope.minimum = 14
-  $scope.maximum = 65
-  $scope.$watch 'minimum', ->
-    console.log $scope.minimum
+  $scope.minimum = 1
+  $scope.maximum = 10
+  $scope.$watch 'minimum', -> console.log $scope.minimum
 
 ]
-app.directive 'slider', ->
+angular.module('ngSlider',[]).directive 'slider',[ ->
   restrict : 'A'
   scope :
     minValue : '='
     maxValue : '='
-    step     : '='
 
   templateUrl : './templates/slider-template.html'
 
-  link: (scope, element) ->
-    console.log scope
-    # moving max pointer
-    width = element[0].clientWidth
-    minElement = document.getElementsByClassName('slider-btn min')[0]
+  link: (scope) ->
+    minElement = document.getElementById('slider-btn-min')
     maxElement = document.getElementsByClassName('slider-btn max')[0]
     sliderContainer = document.getElementsByClassName('slider-container')[0]
     sliderRange = document.getElementById('slider-range')
-
-
     maxWidthRange = sliderContainer.clientWidth
-    maxElement.style.right = -30
-    minElement.style.left = -30
+    scope.$watch minElement, -> minElement.style.left = -minElement.offsetWidth
+    scope.$watch maxElement, -> maxElement.style.right = -maxElement.offsetWidth
+
+
     #set init value
     sliderRange.style.left = 0
     sliderRange.style.right = 0
     step = sliderRange.clientWidth / (scope.maxValue - scope.minValue)
-    console.log step
 
     initMaxValue = scope.maxValue
     initMinValue = scope.minValue
 
-    sliderRangeCurrentXMAX = 150 - 30
-    sliderRangeCurrentXMIN = 150
+    sliderRangeCurrentX = 0
     onDragEventMIN = false
     onDropEventMAX = false
     startPosition = 0
     finishPosition = 0
-    maxPosition =  100000
-    minPosition = -100000
+    maxPosition =  Number.MAX_VALUE
+    minPosition = -Number.MAX_VALUE
+    resetPosition = ->
+      maxPosition =  Number.MAX_VALUE
+      minPosition = -Number.MAX_VALUE
 
-    maxElement.addEventListener 'mousedown', (event)->
-      maxPosition =  100000
-      minPosition = -100000
+    maxElement.addEventListener 'mousedown', (event)-> dragMinBubble(event)
+    maxElement.addEventListener 'touchstart', (event)-> dragMinBubble(event)
+
+    minElement.addEventListener 'mousedown', (event)-> dragMaxBubble(event)
+    minElement.addEventListener 'touchstart', (event)-> dragMaxBubble(event)
+
+
+    document.addEventListener 'mouseup', -> dropBubble()
+    document.addEventListener 'touchend', -> dropBubble()
+
+
+
+
+
+    dragMinBubble = (event) ->
+      if event.changedTouches
+        event = event.changedTouches[0]
+      console.log 'ppppppppppppppp'
+      resetPosition()
       if maxElement.style.right
-        sliderRangeCurrentXMAX = sliderRange.style.right.slice(0,-2)
+        sliderRangeCurrentX = getPixelsOfSliderRangeProperty('right')
       onDropEventMAX = true
-      startPosition = event.clientX
+      startPosition = Math.floor event.clientX
 
-    minElement.addEventListener 'mousedown', (event)->
-      maxPosition =  100000
-      minPosition = -100000
+    dragMaxBubble = (event) ->
+      if event.changedTouches
+        event = event.changedTouches[0]
+
+      console.log 'ppppppppppppppp'
+      resetPosition()
       if minElement.style.left
-        sliderRangeCurrentXMIN = sliderRange.style.left.slice(0,-2)
+        sliderRangeCurrentX = getPixelsOfSliderRangeProperty('left')
       onDragEventMIN = true
-      startPosition = event.clientX
+      startPosition = Math.floor event.clientX
 
-
-    document.addEventListener 'mouseup', (event)->
+    dropBubble = ->
       onDropEventMAX = false
       onDragEventMIN = false
 
 
+
+
+
+
+    document.body.addEventListener 'touchmove', (event)->
+      if event.changedTouches
+        event = event.changedTouches[0]
+#        console.log event.clientX
+      calculatePosition(event, 'right', 'left', setMaxValue, setMaxPosition, setMinPosition  ) if onDropEventMAX
+      calculatePosition(event, 'left', 'right', setMinValue, setMinPosition, setMaxPosition  ) if onDragEventMIN
+
     document.body.onmousemove = (event)->
-      #for max
-      if onDropEventMAX
-        finishPosition = event.clientX
+      calculatePosition(event, 'right', 'left', setMaxValue, setMaxPosition, setMinPosition  ) if onDropEventMAX
+      calculatePosition(event, 'left', 'right', setMinValue, setMinPosition, setMaxPosition  ) if onDragEventMIN
 
-        if (finishPosition < maxPosition) && (finishPosition > minPosition)
-          sliderRange.style.right = sliderRangeCurrentXMAX - (finishPosition - startPosition)
-          setMaxValue()
-#          scope.maxValue = initMaxValue - Math.floor sliderRange.style.right.slice(0,-2)/step if Math.floor sliderRange.style.right.slice(0,-2) > 0
-#          scope.maxValue = scope.minValue + 1 if scope.maxValue <= scope.minValue
-          scope.$apply()
-        if (sliderRange.style.right.slice(0,-2) < 0)
-          sliderRange.style.right = '0px'
-          maxPosition = event.clientX
-        if (maxWidthRange < ((1*sliderRange.style.left.slice(0,-2) + 1*sliderRange.style.right.slice(0,-2) + sliderRange.clientWidth))) && (finishPosition < maxPosition)
-          minPosition = event.clientX
-          sliderRange.style.right = maxWidthRange - sliderRange.style.left.slice(0,-2)
-
-      #     for min
-      if onDragEventMIN
-        finishPosition = event.clientX
-        if (finishPosition < maxPosition) && (finishPosition > minPosition)
-          sliderRange.style.left = sliderRangeCurrentXMIN - (startPosition - finishPosition)
-          setMinValue()
-#          scope.minValue = initMinValue + Math.floor sliderRange.style.left.slice(0,-2)/step if sliderRange.style.left.slice(0,-2) > 0
-#          scope.minValue = scope.maxValue - 1  if scope.maxValue  <= scope.minValue
-          scope.$apply()
-        if (sliderRange.style.left.slice(0,-2) < 0)
-          sliderRange.style.left = '0px'
-          minPosition = event.clientX
-        if (maxWidthRange < ((1*sliderRange.style.left.slice(0,-2) + 1*sliderRange.style.right.slice(0,-2) + sliderRange.clientWidth))) && (finishPosition < maxPosition)
-          maxPosition = event.clientX
-          sliderRange.style.left = maxWidthRange - sliderRange.style.right.slice(0,-2)
+    calculatePosition = (event, myPosition, siblingPosition, setValue, setLeftPosition, setRightPosition )->
+      finishPosition = Math.floor event.clientX
+      console.log minPosition, finishPosition, maxPosition
+      if minPosition < finishPosition < maxPosition
+        setValue()
+        scope.$apply()
+      console.log getPixelsOfSliderRangeProperty(myPosition)
+      if (getPixelsOfSliderRangeProperty(myPosition) < 0)
+        sliderRange.style[myPosition] = '0px'
+        setLeftPosition(event)
+        console.log '2222222'
+      if checkBubblesCollision()
+        console.log '3333333'
+        setRightPosition(event)
+        sliderRange.style[myPosition] = maxWidthRange - getPixelsOfSliderRangeProperty(siblingPosition)
 
 
-    setMaxValue = ()->
-      scope.maxValue = initMaxValue - Math.floor sliderRange.style.right.slice(0,-2)/step if Math.floor sliderRange.style.right.slice(0,-2) > 0
+    setMinPosition = (event)->
+      minPosition = Math.floor event.clientX
+    setMaxPosition = (event)->
+      maxPosition = Math.floor event.clientX
+
+    setMaxValue = ->
+      setSliderRightPosition()
+      scope.maxValue = initMaxValue - Math.floor getPixelsOfSliderRangeProperty('right')/step if Math.floor getPixelsOfSliderRangeProperty('right') > 0
       scope.maxValue = scope.minValue + 1 if scope.maxValue <= scope.minValue
-    setMinValue = ()->
-      scope.minValue = initMinValue + Math.floor sliderRange.style.left.slice(0,-2)/step if sliderRange.style.left.slice(0,-2) > 0
+
+    setMinValue = ->
+      setSliderLeftPosition()
+      scope.minValue = initMinValue + Math.floor getPixelsOfSliderRangeProperty('left')/step if getPixelsOfSliderRangeProperty('left') > 0
       scope.minValue = scope.maxValue - 1  if scope.maxValue  <= scope.minValue
 
+    setSliderRightPosition = ->
+      sliderRange.style.right = sliderRangeCurrentX - (finishPosition - startPosition)
+      console.log sliderRangeCurrentX, finishPosition, startPosition
+
+    setSliderLeftPosition = ->  sliderRange.style.left = sliderRangeCurrentX - (startPosition - finishPosition)
+
+    checkBubblesCollision = ->
+      console.log checkOutOfTheRange()
+      checkOutOfTheRange() && (finishPosition < maxPosition)
+
+    checkOutOfTheRange = ->
+      console.log maxWidthRange, 1*getPixelsOfSliderRangeProperty('left'), 1*getPixelsOfSliderRangeProperty('right'), sliderRange.clientWidth
+      maxWidthRange < (1*getPixelsOfSliderRangeProperty('left') + 1*getPixelsOfSliderRangeProperty('right') + sliderRange.clientWidth)
+
+    getPixelsOfSliderRangeProperty = (property)-> sliderRange.style[property].slice(0, -2)
 
     false
+]
 
 
 
