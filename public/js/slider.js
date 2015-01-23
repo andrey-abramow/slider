@@ -18,7 +18,7 @@ angular.module('ngSlider', []).directive('slider', [
         minValue: '=',
         maxValue: '='
       },
-      templateUrl: './templates/slider-template.html',
+      template: "<div class='slider'>" + "<div class='slider-container'>" + "<div class='slider-range'  id='slider-range'>" + "<div class='slider-btn min' id='slider-btn-min'>" + "<span class='slider-btn-val'>{{minValue}}</span>" + "</div>" + "<div class='slider-btn max'>" + "<span class='slider-btn-val'>{{maxValue}}</span>" + "</div>" + "</div>" + "</div>" + "</div>",
       link: function(scope) {
         var calculatePosition, checkBubblesCollision, checkOutOfTheRange, dragMaxBubble, dragMinBubble, dropBubble, finishPosition, getPixelsOfSliderRangeProperty, initMaxValue, initMinValue, maxElement, maxPosition, maxWidthRange, minElement, minPosition, onDragEventMIN, onDropEventMAX, resetPosition, setMaxPosition, setMaxValue, setMinPosition, setMinValue, setSliderLeftPosition, setSliderRightPosition, sliderContainer, sliderRange, sliderRangeCurrentX, startPosition, step;
         minElement = document.getElementById('slider-btn-min');

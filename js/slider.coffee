@@ -11,7 +11,18 @@ angular.module('ngSlider',[]).directive 'slider',[ ->
     minValue : '='
     maxValue : '='
 
-  templateUrl : './templates/slider-template.html'
+  template : "<div class='slider'>"+
+               "<div class='slider-container'>"+
+                  "<div class='slider-range'  id='slider-range'>"+
+                    "<div class='slider-btn min' id='slider-btn-min'>"+
+                      "<span class='slider-btn-val'>{{minValue}}</span>"+
+                    "</div>"+
+                    "<div class='slider-btn max'>"+
+                      "<span class='slider-btn-val'>{{maxValue}}</span>"+
+                    "</div>"+
+                  "</div>"+
+               "</div>"+
+             "</div>"
 
   link: (scope) ->
     minElement = document.getElementById('slider-btn-min')
@@ -53,9 +64,6 @@ angular.module('ngSlider',[]).directive 'slider',[ ->
     document.addEventListener 'touchend', -> dropBubble()
 
 
-
-
-
     dragMinBubble = (event) ->
       if event.changedTouches
         event = event.changedTouches[0]
@@ -80,10 +88,6 @@ angular.module('ngSlider',[]).directive 'slider',[ ->
     dropBubble = ->
       onDropEventMAX = false
       onDragEventMIN = false
-
-
-
-
 
 
     document.body.addEventListener 'touchmove', (event)->
