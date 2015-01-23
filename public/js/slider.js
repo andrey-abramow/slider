@@ -2,8 +2,8 @@ window.app = angular.module('app', ['ngSlider', 'ngTouch']);
 
 app.controller('mainCtrl', [
   '$scope', function($scope) {
-    $scope.minimum = 1;
-    $scope.maximum = 10;
+    $scope.minimum = 14;
+    $scope.maximum = 65;
     return $scope.$watch('minimum', function() {
       return console.log($scope.minimum);
     });
@@ -20,7 +20,7 @@ angular.module('ngSlider', []).directive('slider', [
       },
       template: "<div class='slider'>" + "<div class='slider-container'>" + "<div class='slider-range'  id='slider-range'>" + "<div class='slider-btn min' id='slider-btn-min'>" + "<span class='slider-btn-val'>{{minValue}}</span>" + "</div>" + "<div class='slider-btn max'>" + "<span class='slider-btn-val'>{{maxValue}}</span>" + "</div>" + "</div>" + "</div>" + "</div>",
       link: function(scope) {
-        var calculatePosition, checkBubblesCollision, checkOutOfTheRange, dragMaxBubble, dragMinBubble, dropBubble, finishPosition, getPixelsOfSliderRangeProperty, initMaxValue, initMinValue, maxElement, maxPosition, maxWidthRange, minElement, minPosition, onDragEventMIN, onDropEventMAX, resetPosition, setMaxPosition, setMaxValue, setMinPosition, setMinValue, setSliderLeftPosition, setSliderRightPosition, sliderContainer, sliderRange, sliderRangeCurrentX, startPosition, step;
+        var calculatePosition, checkBubblesCollision, checkOutOfTheRange, dragMaxBubble, dragMinBubble, dropBubble, finishPosition, getPixelsOfSliderRangeProperty, initMaxValue, initMinValue, maxElement, maxPosition, maxWidthRange, minElement, minPosition, moveBubble, onDragEventMIN, onDropEventMAX, resetPosition, setMaxPosition, setMaxValue, setMinPosition, setMinValue, setSliderLeftPosition, setSliderRightPosition, sliderContainer, sliderRange, sliderRangeCurrentX, startPosition, step;
         minElement = document.getElementById('slider-btn-min');
         maxElement = document.getElementsByClassName('slider-btn max')[0];
         sliderContainer = document.getElementsByClassName('slider-container')[0];
@@ -66,11 +66,16 @@ angular.module('ngSlider', []).directive('slider', [
         document.addEventListener('touchend', function() {
           return dropBubble();
         });
+        document.body.addEventListener('touchmove', function(event) {
+          return moveBubble(event);
+        });
+        document.body.onmousemove = function(event) {
+          return moveBubble(event);
+        };
         dragMinBubble = function(event) {
           if (event.changedTouches) {
             event = event.changedTouches[0];
           }
-          console.log('ppppppppppppppp');
           resetPosition();
           if (maxElement.style.right) {
             sliderRangeCurrentX = getPixelsOfSliderRangeProperty('right');
@@ -82,7 +87,6 @@ angular.module('ngSlider', []).directive('slider', [
           if (event.changedTouches) {
             event = event.changedTouches[0];
           }
-          console.log('ppppppppppppppp');
           resetPosition();
           if (minElement.style.left) {
             sliderRangeCurrentX = getPixelsOfSliderRangeProperty('left');
@@ -94,7 +98,7 @@ angular.module('ngSlider', []).directive('slider', [
           onDropEventMAX = false;
           return onDragEventMIN = false;
         };
-        document.body.addEventListener('touchmove', function(event) {
+        moveBubble = function(event) {
           if (event.changedTouches) {
             event = event.changedTouches[0];
           }
@@ -104,30 +108,18 @@ angular.module('ngSlider', []).directive('slider', [
           if (onDragEventMIN) {
             return calculatePosition(event, 'left', 'right', setMinValue, setMinPosition, setMaxPosition);
           }
-        });
-        document.body.onmousemove = function(event) {
-          if (onDropEventMAX) {
-            calculatePosition(event, 'right', 'left', setMaxValue, setMaxPosition, setMinPosition);
-          }
-          if (onDragEventMIN) {
-            return calculatePosition(event, 'left', 'right', setMinValue, setMinPosition, setMaxPosition);
-          }
         };
         calculatePosition = function(event, myPosition, siblingPosition, setValue, setLeftPosition, setRightPosition) {
           finishPosition = Math.floor(event.clientX);
-          console.log(minPosition, finishPosition, maxPosition);
           if ((minPosition < finishPosition && finishPosition < maxPosition)) {
             setValue();
             scope.$apply();
           }
-          console.log(getPixelsOfSliderRangeProperty(myPosition));
           if (getPixelsOfSliderRangeProperty(myPosition) < 0) {
             sliderRange.style[myPosition] = '0px';
             setLeftPosition(event);
-            console.log('2222222');
           }
           if (checkBubblesCollision()) {
-            console.log('3333333');
             setRightPosition(event);
             return sliderRange.style[myPosition] = maxWidthRange - getPixelsOfSliderRangeProperty(siblingPosition);
           }
@@ -157,18 +149,15 @@ angular.module('ngSlider', []).directive('slider', [
           }
         };
         setSliderRightPosition = function() {
-          sliderRange.style.right = sliderRangeCurrentX - (finishPosition - startPosition);
-          return console.log(sliderRangeCurrentX, finishPosition, startPosition);
+          return sliderRange.style.right = sliderRangeCurrentX - (finishPosition - startPosition);
         };
         setSliderLeftPosition = function() {
           return sliderRange.style.left = sliderRangeCurrentX - (startPosition - finishPosition);
         };
         checkBubblesCollision = function() {
-          console.log(checkOutOfTheRange());
           return checkOutOfTheRange() && (finishPosition < maxPosition);
         };
         checkOutOfTheRange = function() {
-          console.log(maxWidthRange, 1 * getPixelsOfSliderRangeProperty('left'), 1 * getPixelsOfSliderRangeProperty('right'), sliderRange.clientWidth);
           return maxWidthRange < (1 * getPixelsOfSliderRangeProperty('left') + 1 * getPixelsOfSliderRangeProperty('right') + sliderRange.clientWidth);
         };
         getPixelsOfSliderRangeProperty = function(property) {
