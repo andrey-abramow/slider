@@ -132,7 +132,9 @@ angular.module('ngSlider',[]).directive 'slider',[ ->
       checkOutOfTheRange() && (finishPosition < maxPosition)
 
     checkOutOfTheRange = ->
-      maxWidthRange < (1*getPixelsOfSliderRangeProperty('left') + 1*getPixelsOfSliderRangeProperty('right') + sliderRange.clientWidth)
+      sliderRangeWidth = sliderRange.clientWidth
+      sliderRangeWidth = 0 if sliderRangeWidth < 0
+      maxWidthRange < (1*getPixelsOfSliderRangeProperty('left') + 1*getPixelsOfSliderRangeProperty('right') + sliderRangeWidth)
 
     getPixelsOfSliderRangeProperty = (property)-> sliderRange.style[property].slice(0, -2)
 
