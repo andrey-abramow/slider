@@ -158,7 +158,12 @@ angular.module('ngSlider', []).directive('slider', [
           return checkOutOfTheRange() && (finishPosition < maxPosition);
         };
         checkOutOfTheRange = function() {
-          return maxWidthRange < (1 * getPixelsOfSliderRangeProperty('left') + 1 * getPixelsOfSliderRangeProperty('right') + sliderRange.clientWidth);
+          var sliderRangeWidth;
+          sliderRangeWidth = sliderRange.clientWidth;
+          if (sliderRangeWidth < 0) {
+            sliderRangeWidth = 0;
+          }
+          return maxWidthRange < (1 * getPixelsOfSliderRangeProperty('left') + 1 * getPixelsOfSliderRangeProperty('right') + sliderRangeWidth);
         };
         getPixelsOfSliderRangeProperty = function(property) {
           return sliderRange.style[property].slice(0, -2);
